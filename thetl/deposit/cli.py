@@ -1,13 +1,15 @@
 import requests
 import json
 
+# (venv) PS C:\Users\Stend\PycharmProjects\aProject\thetl\deposit> python cli.py
+
 url = 'http://127.0.0.1:8000/calculate/'
 data = {
-    "date": "31.01.2021",
-    "periods": 4,
-    "amount": 10000,
-    "rate": 8
-}
+            "date": "01.01.2024",
+            "periods": 3,
+            "amount": 10000,
+            "rate": 10
+        }
 headers = {'Content-Type': 'application/json'}
 
 try:

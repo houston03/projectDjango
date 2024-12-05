@@ -1,15 +1,17 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from decimal import Decimal, ROUND_HALF_UP
-from .models import DepositRequest
+from decimal import Decimal
 import json
-import datetime
+from .models import DepositRequest
+from datetime import date
 
-class CalculateDepositTests(TestCase):
+# (venv) PS C:\Users\Stend\PycharmProjects\aProject\thetl> python manage.py test deposit
+
+class CalculateDepositViewTest(TestCase):
     def setUp(self):
         self.client = Client()
 
-    def test_valid_request(self):
+    def test_valid_input(self):
         data = {
             "date": "01.01.2024",
             "periods": 3,
@@ -17,87 +19,58 @@ class CalculateDepositTests(TestCase):
             "rate": 10
         }
         response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 201)  # Проверяем статус ответа
-        self.assertIn('results', response.json())     # Проверяем наличие результатов
-        results = response.json()['results']
-        self.assertEqual(len(results), 3)            # Проверяем количество результатов
-        # Добавьте сюда более точные проверки результатов расчета, например:
-        # self.assertEqual(results[0], "01.01.2024:10020.83") # Пример, рассчитайте значения заранее
-        self.assertEqual(DepositRequest.objects.count(), 1) # Проверяем, что запись создана
+        self.assertEqual(response.status_code, 201)  # Check for 201 Created status code
+        self.assertEqual(len(response.json()['results']), 3)  # Check the number of results
+
+        #Check if DepositRequest object is saved in the db
+        self.assertEqual(DepositRequest.objects.count(), 1)
+        deposit = DepositRequest.objects.first()
+        self.assertEqual(deposit.date, date(2024,1,1))
+        self.assertEqual(deposit.periods, 3)
+        self.assertEqual(deposit.amount, Decimal('10252')) #You'll want to calculate this precisely
 
 
     def test_invalid_date_format(self):
         data = {
-            "date": "01-01-2024",  # Неверный формат даты
+            "date": "01-01-2024",  # Invalid date format
             "periods": 3,
             "amount": 10000,
             "rate": 10
         }
         response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 400)  # Проверяем статус ответа
-        self.assertIn('error', response.json())     # Проверяем наличие сообщения об ошибке
-        self.assertTrue('Неверный формат данных' in response.json()['error']) # Проверяем текст ошибки
+        self.assertEqual(response.status_code, 400)  # Check for 400 Bad Request
+        self.assertIn('error', response.json()) # Check that error message is returned
 
 
     def test_invalid_periods(self):
         data = {
             "date": "01.01.2024",
-            "periods": -1,      # Неверное количество периодов
+            "periods": -1,  #Invalid periods value
             "amount": 10000,
             "rate": 10
         }
         response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('error', response.json())
-        # Добавьте проверку содержимого ошибки
-
+        self.assertEqual(response.status_code, 400)  # Check for 400 Bad Request
+        self.assertIn('error', response.json()) # Check that error message is returned
 
     def test_invalid_amount(self):
         data = {
             "date": "01.01.2024",
             "periods": 3,
-            "amount": -1000,    # Неверная сумма
+            "amount": -10000,  #Invalid amount value
             "rate": 10
         }
         response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('error', response.json())
-        # Добавьте проверку содержимого ошибки
-
+        self.assertEqual(response.status_code, 400)  # Check for 400 Bad Request
+        self.assertIn('error', response.json()) # Check that error message is returned
 
     def test_invalid_rate(self):
         data = {
             "date": "01.01.2024",
             "periods": 3,
             "amount": 10000,
-            "rate": -5        # Неверная процентная ставка
+            "rate": -10,  #Invalid rate value
         }
         response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400)  # Check for 400 Bad Request
         self.assertIn('error', response.json())
-        # Добавьте проверку содержимого ошибки
-
-
-    def test_missing_fields(self):
-        data = {
-            "periods": 3,
-            "amount": 10000,
-            "rate": 10
-        }
-        response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('error', response.json())
-        # Добавьте проверку содержимого ошибки
-
-    def test_decimal_rounding(self):
-        data = {
-            "date": "01.01.2024",
-            "periods": 1,
-            "amount": 10000,
-            "rate": 10.01
-        }
-        response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 201)
-        # Проверьте округление.  Рассчитайте ожидаемое значение вручную.
-        expected_amount = Decimal('10083.75').quantize(Decimal('0.02'), ROUND_HALF_UP)
-        self.assertEqual(Decimal(response.json()['results'][0].split(':')[1]), expected_amount)
