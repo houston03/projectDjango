@@ -2,7 +2,7 @@ import requests
 import json
 
 # (venv) PS C:\Users\Stend\PycharmProjects\aProject\thetl\deposit> python cli.py
-
+# Скрипт для сохранения результата в Постгрес и теста
 url = 'http://127.0.0.1:8000/calculate/'
 data = {
             "date": "01.01.2024",

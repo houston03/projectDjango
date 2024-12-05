@@ -18,59 +18,58 @@ class CalculateDepositViewTest(TestCase):
             "amount": 10000,
             "rate": 10
         }
-        response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 201)  # Check for 201 Created status code
-        self.assertEqual(len(response.json()['results']), 3)  # Check the number of results
-
-        #Check if DepositRequest object is saved in the db
-        self.assertEqual(DepositRequest.objects.count(), 1)
-        deposit = DepositRequest.objects.first()
+        response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')  # Отправляется POST-запрос
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(len(response.json()['results']), 3)
+        self.assertEqual(DepositRequest.objects.count(), 1)  # Проверяется, что в базе данных создалась одна запись
+        deposit = DepositRequest.objects.first()  # Получение созданной записи из базы данных
         self.assertEqual(deposit.date, date(2024,1,1))
         self.assertEqual(deposit.periods, 3)
-        self.assertEqual(deposit.amount, Decimal('10252')) #You'll want to calculate this precisely
+        self.assertEqual(deposit.amount, Decimal('10252'))
 
+# Тесты на ошибки, должны вернуть статус код 400 и сообщение об ошибке
 
     def test_invalid_date_format(self):
         data = {
-            "date": "01-01-2024",  # Invalid date format
+            "date": "01-01-2024",
             "periods": 3,
             "amount": 10000,
             "rate": 10
         }
         response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 400)  # Check for 400 Bad Request
-        self.assertIn('error', response.json()) # Check that error message is returned
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('error', response.json())
 
 
     def test_invalid_periods(self):
         data = {
             "date": "01.01.2024",
-            "periods": -1,  #Invalid periods value
+            "periods": -1,
             "amount": 10000,
             "rate": 10
         }
         response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 400)  # Check for 400 Bad Request
-        self.assertIn('error', response.json()) # Check that error message is returned
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('error', response.json())
 
     def test_invalid_amount(self):
         data = {
             "date": "01.01.2024",
             "periods": 3,
-            "amount": -10000,  #Invalid amount value
+            "amount": -10000,
             "rate": 10
         }
         response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 400)  # Check for 400 Bad Request
-        self.assertIn('error', response.json()) # Check that error message is returned
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('error', response.json())
 
     def test_invalid_rate(self):
         data = {
             "date": "01.01.2024",
             "periods": 3,
             "amount": 10000,
-            "rate": -10,  #Invalid rate value
+            "rate": -10,
         }
         response = self.client.post(reverse('calculate_deposit'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 400)  # Check for 400 Bad Request
+        self.assertEqual(response.status_code, 400)
         self.assertIn('error', response.json())

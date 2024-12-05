@@ -77,7 +77,7 @@ WSGI_APPLICATION = 'thetl.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-#DATABASES {}
+# DATABASES {}
 
 
 # Password validation
