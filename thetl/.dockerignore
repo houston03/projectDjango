@@ -1,0 +1,13 @@
+.git
+__pycache__/
+*.pyc
+.env
+venv/
+*.log
+*.db
+media/  # Если вы используете Django media files
+.DS_Store  # Для macOS
+.idea/  # Для IDE PyCharm
+*.iml  # Для IDE IntelliJ
+build/
+dist/
