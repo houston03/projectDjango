@@ -6,7 +6,7 @@ from rest_framework.parsers import JSONParser
 import datetime
 from datetime import date, timedelta
 from decimal import Decimal, ROUND_HALF_UP
-
+from django.shortcuts import render
 
 @api_view(['POST'])  # Декоратор на обработку POST запросов
 def calculate_deposit(request):
@@ -56,7 +56,7 @@ def calculate_deposit(request):
         return Response({'error': f'Внутренняя ошибка: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-from django.shortcuts import render
+
 
 def index(request):  # Это мне для практики по ДжангоАдминке )
     return render(request, 'index.html', {'title': 'Main'})
