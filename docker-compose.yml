@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://postgres:QwePoi120!@<IP_ADDRESS>:5432/postgres  # Заменить <IP_ADDRESS> на IP контейнера db
+      - DJANGO_SETTINGS_MODULE=djangoProject.settings
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=QwePoi120!
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+volumes:
+  db_data:
+  staticfiles:
